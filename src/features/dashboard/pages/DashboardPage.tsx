@@ -1,40 +1,24 @@
 import { ArrowRight, BookOpen, Clock, PlayCircle } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { AsyncData } from '@/components/ui/async-data'
+import { useCourses, useLesson } from '@/features/course-player/api'
+import { useNotes } from '@/features/notes/api'
+import { useCourseProgressList } from '@/features/progress/api'
 import { cn } from '@/lib/utils'
-import type { Course, CourseProgress, Lesson, Note } from '@/types'
+import type { Course } from '@/types'
 
 export function DashboardPage() {
-  const [courses, setCourses] = useState<Course[] | null>(null)
-  const [progress, setProgress] = useState<CourseProgress[] | null>(null)
-  const [notes, setNotes] = useState<Note[] | null>(null)
-  const [continueLesson, setContinueLesson] = useState<Lesson | null>(null)
-
-  useEffect(() => {
-    void Promise.all([
-      fetch('/api/courses').then((res) => res.json() as Promise<Course[]>),
-      fetch('/api/progress/courses').then((res) => res.json() as Promise<CourseProgress[]>),
-      fetch('/api/notes').then((res) => res.json() as Promise<Note[]>),
-    ]).then(([coursesData, progressData, notesData]) => {
-      setCourses(coursesData)
-      setProgress(progressData)
-      setNotes(notesData)
-    })
-  }, [])
+  const coursesQuery = useCourses()
+  const { data: progress } = useCourseProgressList()
+  const { data: notes } = useNotes()
 
   const mostRecentProgress =
     progress && progress.length > 0
       ? [...progress].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
       : undefined
 
-  useEffect(() => {
-    if (!mostRecentProgress?.lastAccessedLessonId) return
-    void fetch(`/api/lessons/${mostRecentProgress.lastAccessedLessonId}`)
-      .then((res) => res.json() as Promise<Lesson>)
-      .then(setContinueLesson)
-  }, [mostRecentProgress?.lastAccessedLessonId])
+  const { data: continueLesson } = useLesson(mostRecentProgress?.lastAccessedLessonId)
 
-  const continueCourse = courses?.find((c) => c.id === mostRecentProgress?.courseId)
   const coursesInProgress =
     progress?.filter((p) => p.percentComplete > 0 && p.percentComplete < 100).length ?? 0
   const bookmarkedNotes = notes?.filter((n) => n.isBookmarked).length ?? 0
@@ -50,8 +34,50 @@ export function DashboardPage() {
         <h1 className="font-heading text-2xl font-semibold">Your courses</h1>
       </div>
 
-      {!courses && <p className="text-sm text-muted-foreground">Loading your dashboard…</p>}
+      <AsyncData
+        query={coursesQuery}
+        loadingText="Loading your dashboard…"
+        errorText="Couldn't load your dashboard."
+        isEmpty={(courses) => courses.length === 0}
+        emptyText="You're not enrolled in any courses yet."
+      >
+        {(courses) => (
+          <DashboardBody
+            courses={courses}
+            progress={progress}
+            continueLesson={continueLesson}
+            continueCourseId={mostRecentProgress?.courseId}
+            coursesInProgress={coursesInProgress}
+            lessonsCompleted={lessonsCompleted}
+            bookmarkedNotes={bookmarkedNotes}
+          />
+        )}
+      </AsyncData>
+    </div>
+  )
+}
 
+function DashboardBody({
+  courses,
+  progress,
+  continueLesson,
+  continueCourseId,
+  coursesInProgress,
+  lessonsCompleted,
+  bookmarkedNotes,
+}: {
+  courses: Course[]
+  progress: ReturnType<typeof useCourseProgressList>['data']
+  continueLesson: ReturnType<typeof useLesson>['data']
+  continueCourseId: string | undefined
+  coursesInProgress: number
+  lessonsCompleted: number
+  bookmarkedNotes: number
+}) {
+  const continueCourse = courses.find((c) => c.id === continueCourseId)
+
+  return (
+    <>
       {continueCourse && (
         <Link
           to={`/courses/${continueCourse.id}`}
@@ -83,7 +109,7 @@ export function DashboardPage() {
       <div className="flex flex-col gap-3">
         <h2 className="text-base font-semibold">My courses</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {courses?.map((course) => {
+          {courses.map((course) => {
             const courseProgress = progress?.find((p) => p.courseId === course.id)
             const percent = courseProgress?.percentComplete ?? 0
             return (
@@ -139,7 +165,7 @@ export function DashboardPage() {
           })}
         </div>
       </div>
-    </div>
+    </>
   )
 }
 

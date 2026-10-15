@@ -1,6 +1,7 @@
 export * from './users'
 export * from './courses'
 export * from './quizzes'
+export * from './quiz-attempts'
 export * from './resources'
 export * from './notes'
 export * from './progress'

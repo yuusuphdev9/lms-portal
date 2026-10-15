@@ -1,9 +1,14 @@
+import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import { GraduationCap } from 'lucide-react'
-import { Outlet } from 'react-router'
+import { ErrorBoundary } from 'react-error-boundary'
+import { Outlet, useLocation } from 'react-router'
+import { ErrorFallback } from '@/components/error-boundary/ErrorFallback'
 import { MobileNav } from './MobileNav'
 import { SidebarNav } from './SidebarNav'
 
 export function RootLayout() {
+  const location = useLocation()
+
   return (
     <div className="flex min-h-svh flex-col">
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-4">
@@ -24,7 +29,23 @@ export function RootLayout() {
         </aside>
 
         <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
+          {/*
+           * Scoped to the page content, not the whole app: if a page throws, the nav shell
+           * survives so the student can navigate away instead of being stuck on a blank screen.
+           * `resetKeys` ties the boundary to the current route, so simply navigating elsewhere
+           * also clears the error without needing the "Try again" button.
+           */}
+          <QueryErrorResetBoundary>
+            {({ reset }) => (
+              <ErrorBoundary
+                onReset={reset}
+                resetKeys={[location.pathname]}
+                FallbackComponent={ErrorFallback}
+              >
+                <Outlet />
+              </ErrorBoundary>
+            )}
+          </QueryErrorResetBoundary>
         </main>
       </div>
     </div>
