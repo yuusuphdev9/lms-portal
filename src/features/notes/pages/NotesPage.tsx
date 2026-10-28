@@ -46,6 +46,7 @@ export function NotesPage() {
               setContent(event.target.value)
             }}
             placeholder="Write a note…"
+            aria-label="Note content"
             rows={3}
             aria-invalid={Boolean(contentError)}
             className={cn(
@@ -62,6 +63,7 @@ export function NotesPage() {
               onChange={(event) => {
                 setCourseId(event.target.value)
               }}
+              aria-label="Course"
               aria-invalid={Boolean(courseError)}
               className={cn(
                 'rounded-lg border bg-background px-3 py-2 text-sm',

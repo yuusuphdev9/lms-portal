@@ -22,7 +22,11 @@
   --muted-foreground: oklch(0.45 0.03 175);
   --accent: oklch(0.9 0.04 175);
   --accent-foreground: oklch(0.3 0.07 175);
-  --destructive: oklch(0.577 0.245 27.325);
+  /* Lightness lowered from the oklch(0.577 …) shadcn default — at 0.577 it reads as destructive
+     red at 4.01:1 against its own bg-destructive/5 tint, just under WCAG's 4.5:1 body-text
+     minimum (caught by a Lighthouse accessibility audit on AsyncData's and QuestionField's
+     error text). 0.5 keeps the same hue/chroma while clearing the threshold. */
+  --destructive: oklch(0.5 0.245 27.325);
   --border: oklch(0.88 0.015 175);
   --input: oklch(0.88 0.015 175);
   --ring: oklch(0.45 0.09 175);
