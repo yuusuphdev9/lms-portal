@@ -32,13 +32,7 @@ export function DashboardPage() {
         <span className="text-xs font-semibold uppercase tracking-wide text-primary">
           {timeOfDayGreeting()}
         </span>
-        <h1 className="relative inline-block w-fit font-heading text-2xl font-semibold">
-          Your courses
-          <span
-            aria-hidden="true"
-            className="underline-squiggle absolute -bottom-1.5 left-0 h-2 w-[108%] text-primary/50"
-          />
-        </h1>
+        <h1 className="font-heading text-2xl font-semibold">Your courses</h1>
       </div>
 
       <AsyncData
