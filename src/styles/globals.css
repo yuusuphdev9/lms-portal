@@ -55,6 +55,12 @@
   --warning-foreground: oklch(0.98 0.01 65);
   --info: oklch(0.6 0.14 230);
   --info-foreground: oklch(0.985 0 0);
+
+  /* A second, warmer accent so the palette doesn't read as "one hue everywhere" — used sparingly
+     for small decorative touches (tag dots, blobs, the odd highlight) rather than as a second
+     primary color. */
+  --clay: oklch(0.68 0.12 55);
+  --clay-foreground: oklch(0.985 0 0);
 }
 
 .dark {
@@ -98,6 +104,9 @@
   --warning-foreground: oklch(0.19 0.02 65);
   --info: oklch(0.7 0.14 230);
   --info-foreground: oklch(0.145 0 0);
+
+  --clay: oklch(0.72 0.1 55);
+  --clay-foreground: oklch(0.145 0 0);
 }
 
 @theme inline {
@@ -146,6 +155,9 @@
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
 
+  --color-clay: var(--clay);
+  --color-clay-foreground: var(--clay-foreground);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -169,5 +181,33 @@
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
+  }
+}
+
+@layer components {
+  /*
+   * A faint paper-grain texture — a tiny repeating SVG noise pattern, not a photo — so large flat
+   * color fields (the hero, the page background) don't read as a perfectly flat vector fill.
+   * Barely visible at normal viewing distance; that's the point.
+   */
+  .bg-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Soft, irregular color blobs for decorative backgrounds — an organic shape reads as
+     deliberately designed in a way a plain gradient rectangle doesn't. */
+  .blob-decoration {
+    pointer-events: none;
+    position: absolute;
+    border-radius: 44% 56% 62% 38% / 48% 42% 58% 52%;
+    filter: blur(28px);
+  }
+
+  /* A loose, hand-drawn-feeling underline stroke used under a couple of key headings instead of
+     a ruler-straight <hr>. */
+  .underline-squiggle {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M2 8 C 40 2, 70 10, 100 6 S 160 2, 198 7' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
   }
 }

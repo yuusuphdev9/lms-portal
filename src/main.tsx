@@ -9,9 +9,12 @@ import { App } from '@/app/App'
 import '@/styles/globals.css'
 
 async function enableMocking() {
+  // This app has no real backend yet: mocking stays on in every environment until
+  // `VITE_API_BASE_URL` points at a real server, so a plain production deploy still
+  // demonstrates working features instead of showing nothing but error states.
+  if (import.meta.env.VITE_API_BASE_URL) return
   const { worker } = await import('@/mocks/browser')
-  await worker.start({ onUnhandledRequest: 'bypass' })
-  console.log('[App] MSW mocking enabled')
+  return worker.start({ onUnhandledRequest: 'bypass' })
 }
 
 const rootElement = document.getElementById('root')
@@ -19,14 +22,10 @@ if (!rootElement) {
   throw new Error('Root element not found')
 }
 
-enableMocking()
-  .catch((error: unknown) => {
-    console.error('[App] Failed to start MSW:', error)
-  })
-  .then(() => {
-    createRoot(rootElement).render(
-      <StrictMode>
-        <App />
-      </StrictMode>,
-    )
-  })
+void enableMocking().then(() => {
+  createRoot(rootElement).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  )
+})

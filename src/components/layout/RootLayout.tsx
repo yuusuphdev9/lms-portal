@@ -1,5 +1,4 @@
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
-import { GraduationCap } from 'lucide-react'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { Outlet, useLocation } from 'react-router'
@@ -21,9 +20,7 @@ export function RootLayout() {
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-4">
         <MobileNav />
         <div className="flex items-center gap-2.5">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <GraduationCap className="size-4" />
-          </span>
+          <SproutMark className="size-7 shrink-0 text-primary" />
           <span className="font-heading text-[15px] font-semibold tracking-tight">
             LMS Student Portal
           </span>
@@ -61,5 +58,32 @@ export function RootLayout() {
         </main>
       </div>
     </div>
+  )
+}
+
+/**
+ * A small custom sprout mark for the nav brand, in place of a stock icon-in-a-box. Nods to the
+ * botany-flavored course catalog without being literal about it, and a slightly imperfect,
+ * hand-drawn curve reads less "generated" than a geometrically perfect icon library glyph.
+ */
+function SproutMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 28 28" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M14 24V13.5"
+        stroke="currentColor"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+      />
+      <path
+        d="M14 15c0-4.8-3.6-7.4-8.4-7.6C5.4 12.6 8.4 16 14 15Z"
+        fill="currentColor"
+        opacity="0.85"
+      />
+      <path
+        d="M14 11.6c0-4.2 3-6.6 7.4-6.8.2 4.6-2.6 7.6-7.4 6.8Z"
+        fill="currentColor"
+      />
+    </svg>
   )
 }
