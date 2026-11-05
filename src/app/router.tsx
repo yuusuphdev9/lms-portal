@@ -2,6 +2,9 @@ import { lazy } from 'react'
 import { createBrowserRouter } from 'react-router'
 import { NotFoundPage } from '@/components/layout/NotFoundPage'
 import { RootLayout } from '@/components/layout/RootLayout'
+import { LoginPage } from '@/features/auth/pages/LoginPage'
+import { SignupPage } from '@/features/auth/pages/SignupPage'
+import { RequireAuth } from '@/features/auth/RequireAuth'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 
 /**
@@ -30,9 +33,17 @@ const NotesPage = lazy(() =>
 )
 
 export const router = createBrowserRouter([
+  // Public — rendered without the signed-in app shell, and redirect away from
+  // themselves once there's a session (see LoginPage/SignupPage).
+  { path: '/login', element: <LoginPage /> },
+  { path: '/signup', element: <SignupPage /> },
   {
     path: '/',
-    element: <RootLayout />,
+    element: (
+      <RequireAuth>
+        <RootLayout />
+      </RequireAuth>
+    ),
     children: [
       { index: true, element: <DashboardPage /> },
       { path: 'courses/:courseId', element: <CoursePlayerPage /> },

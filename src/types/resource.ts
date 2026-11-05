@@ -25,7 +25,8 @@ export interface Resource {
   moduleId?: string
   lessonId?: string
   tags?: string[]
-  uploadedBy: string
+  /** Not every resource is attributed to a real account — seeded catalog content leaves this unset. */
+  uploadedBy?: string
   uploadedAt: string
   downloadCount: number
 }

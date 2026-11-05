@@ -1,0 +1,90 @@
+
+> lms-portal@0.0.0 coverage
+> vitest run --coverage
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90mC:/Users/Yusuf/Desktop/ALT SCHOOL/lms[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32m✓[39m src/features/quizzes/scoring.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m src/components/ui/async-data.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 446[2mms[22m[39m
+   [32m✓[39m AsyncData [2m(4)[22m
+     [33m[2m✓[22m[39m shows the error text and a working retry button when the query fails[33m 317[2mms[22m[39m
+ [32m✓[39m src/components/layout/RootLayout.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 796[2mms[22m[39m
+   [32m✓[39m RootLayout error boundary [2m(2)[22m
+     [33m[2m✓[22m[39m recovers by navigating away, without needing a code change[33m 477[2mms[22m[39m
+ [32m✓[39m src/features/quizzes/pages/QuizAttemptPage.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 1599[2mms[22m[39m
+   [32m✓[39m QuizAttemptPage [2m(2)[22m
+     [33m[2m✓[22m[39m shows a validation error instead of submitting when questions are unanswered[33m 730[2mms[22m[39m
+     [33m[2m✓[22m[39m scores a fully-correct attempt and shows the passed result[33m 851[2mms[22m[39m
+ [32m✓[39m src/features/notes/pages/NotesPage.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 4367[2mms[22m[39m
+   [32m✓[39m NotesPage [2m(1)[22m
+     [33m[2m✓[22m[39m validates the form, then creates, edits, and deletes a note[33m 4352[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m22 passed[39m[22m[90m (22)[39m
+[2m     Errors [22m [1m[31m1 error[39m[22m
+[2m   Start at [22m 00:00:02
+[2m   Duration [22m 23.60s[2m (environment 43%, setup 24%, import 15%, tests 13%, transform 3%, worker 1%)[22m
+
+[2mEnvironment [22m [33mjsdom was created 5 times[39m[2m · 23.92s total, 43% of tracked time[22m
+[2m            [22m [2mcreate it once per worker with [22m[33mpool: 'vmThreads'[39m[2m (keeps per-file isolation) or [22m[33misolate: false[39m[2m (shares it across files)[22m
+[2m            [22m [2mlearn more: https://vitest.dev/guide/improving-performance#test-environments[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   40.12 |    40.85 |   38.75 |   42.17 |                   
+ app               |       0 |      100 |       0 |       0 |                   
+  App.tsx          |       0 |      100 |       0 |       0 | 7                 
+  query-client.ts  |       0 |      100 |     100 |       0 | 3                 
+  router.tsx       |       0 |      100 |       0 |       0 | 13-32             
+ ...error-boundary |     100 |       50 |     100 |     100 |                   
+  ...rFallback.tsx |     100 |       50 |     100 |     100 | 11                
+ components/layout |   83.33 |      100 |   77.77 |   83.33 |                   
+  MobileNav.tsx    |   66.66 |      100 |      50 |   66.66 | 29                
+  NotFoundPage.tsx |       0 |      100 |       0 |       0 | 4                 
+  RootLayout.tsx   |     100 |      100 |     100 |     100 |                   
+  SidebarNav.tsx   |     100 |      100 |     100 |     100 |                   
+  nav-items.ts     |     100 |      100 |     100 |     100 |                   
+ components/ui     |   18.36 |       75 |   18.75 |   18.75 |                   
+  async-data.tsx   |     100 |       90 |     100 |     100 | 50                
+  avatar.tsx       |       0 |        0 |       0 |       0 | 4-48              
+  badge.tsx        |       0 |      100 |       0 |       0 | 5-27              
+  button.tsx       |       0 |      100 |       0 |       0 | 5-46              
+  card.tsx         |       0 |      100 |       0 |       0 | 4-67              
+  input.tsx        |       0 |      100 |       0 |       0 | 4-19              
+ .../course-player |   15.38 |        0 |    8.33 |   15.38 |                   
+  api.ts           |   16.66 |        0 |    9.09 |   16.66 | 6-10,18-48        
+  lesson-link.ts   |       0 |        0 |       0 |       0 | 9                 
+ ...yer/components |       0 |        0 |       0 |       0 |                   
+  ...onContent.tsx |       0 |        0 |       0 |       0 | 7-39              
+ ...e-player/pages |       0 |        0 |       0 |       0 |                   
+  ...layerPage.tsx |       0 |        0 |       0 |       0 | 18-129            
+  LessonPage.tsx   |       0 |        0 |       0 |       0 | 13-146            
+ ...ashboard/pages |       0 |        0 |       0 |       0 |                   
+  ...boardPage.tsx |       0 |        0 |       0 |       0 | 12-222            
+ features/notes    |     100 |       75 |     100 |     100 |                   
+  api.ts           |     100 |       75 |     100 |     100 | 11                
+ ...es/notes/pages |   88.23 |    86.84 |   88.88 |   89.58 |                   
+  NotesPage.tsx    |   88.23 |    86.84 |   88.88 |   89.58 | ...35,153,211-212 
+ features/progress |    8.33 |        0 |       0 |    8.33 |                   
+  api.ts           |    8.33 |        0 |       0 |    8.33 | 8-43              
+ features/quizzes  |   96.49 |    78.37 |   89.47 |   96.07 |                   
+  api.ts           |   83.33 |       25 |      75 |   83.33 | 14,24             
+  scoring.ts       |     100 |     93.1 |     100 |     100 | 5,97              
+ ...zes/components |   25.35 |    39.43 |   33.33 |    29.5 |                   
+  ...tionField.tsx |   25.35 |    39.43 |   33.33 |    29.5 | ...49-166,187-325 
+ .../quizzes/pages |   70.27 |    83.33 |      60 |   68.75 |                   
+  ...temptPage.tsx |   89.65 |     90.9 |      90 |      88 | 43-45             
+  QuizzesPage.tsx  |       0 |        0 |       0 |       0 | 8-26              
+ ...ures/resources |       0 |        0 |       0 |       0 |                   
+  api.ts           |       0 |        0 |       0 |       0 | 6-21              
+ ...esources/pages |       0 |        0 |       0 |       0 |                   
+  ...urcesPage.tsx |       0 |        0 |       0 |       0 | 17-79             
+ lib               |   29.41 |    26.47 |   63.63 |      35 |                   
+  api.ts           |      75 |       75 |   83.33 |   73.33 | 16-18,29          
+  use-api-query.ts |     100 |      100 |     100 |     100 |                   
+  utils.ts         |    3.03 |        0 |       0 |    4.34 | 5-26,38-42        
+-------------------|---------|----------|---------|---------|-------------------

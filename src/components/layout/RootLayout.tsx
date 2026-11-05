@@ -3,11 +3,15 @@ import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { Outlet, useLocation } from 'react-router'
 import { ErrorFallback } from '@/components/error-boundary/ErrorFallback'
+import { useSignOut } from '@/features/auth/api'
+import { useAuth } from '@/features/auth/AuthContext'
 import { MobileNav } from './MobileNav'
 import { SidebarNav } from './SidebarNav'
 
 export function RootLayout() {
   const location = useLocation()
+  const { profile } = useAuth()
+  const signOut = useSignOut()
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -24,6 +28,22 @@ export function RootLayout() {
           <span className="font-heading text-[15px] font-semibold tracking-tight">
             LMS Student Portal
           </span>
+        </div>
+
+        <div className="ml-auto flex items-center gap-3">
+          {profile && (
+            <span className="hidden text-sm text-muted-foreground sm:inline">{profile.name}</span>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              signOut.mutate()
+            }}
+            disabled={signOut.isPending}
+            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-accent/60 disabled:opacity-50"
+          >
+            Sign out
+          </button>
         </div>
       </header>
 

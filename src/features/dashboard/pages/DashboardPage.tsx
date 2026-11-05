@@ -2,6 +2,7 @@ import { ArrowRight, BookmarkCheck, CheckCircle2, Clock, Flame, PlayCircle } fro
 import type { ComponentType } from 'react'
 import { Link } from 'react-router'
 import { AsyncData } from '@/components/ui/async-data'
+import { useAuth } from '@/features/auth/AuthContext'
 import { useCourses, useLesson } from '@/features/course-player/api'
 import { useNotes } from '@/features/notes/api'
 import { useCourseProgressList } from '@/features/progress/api'
@@ -9,6 +10,7 @@ import { accentForTag, cn, timeAgo, timeOfDayGreeting } from '@/lib/utils'
 import type { Course } from '@/types'
 
 export function DashboardPage() {
+  const { profile } = useAuth()
   const coursesQuery = useCourses()
   const { data: progress } = useCourseProgressList()
   const { data: notes } = useNotes()
@@ -29,8 +31,9 @@ export function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-1.5">
-        <span className="text-xs font-semibold uppercase tracking-wide text-primary">
+        <span className="text-xs font-semibold tracking-wide text-primary">
           {timeOfDayGreeting()}
+          {profile?.name ? `, ${profile.name}` : ''}
         </span>
         <h1 className="font-heading text-2xl font-semibold">Your courses</h1>
       </div>

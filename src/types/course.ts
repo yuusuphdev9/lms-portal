@@ -13,11 +13,11 @@ export interface Course {
   title: string
   description: string
   thumbnailUrl?: string
-  instructorId: string
+  /** Display-only label — the catalog isn't tied to a real instructor login. */
+  instructorName: string
   tags: string[]
   level: CourseLevel
   status: CourseStatus
-  moduleIds: string[]
   estimatedDurationMinutes: number
   createdAt: string
   updatedAt: string
@@ -28,7 +28,6 @@ export interface Module {
   courseId: string
   title: string
   order: number
-  lessonIds: string[]
 }
 
 export type LessonType = 'video' | 'article' | 'quiz' | 'assignment'

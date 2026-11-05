@@ -1,4 +1,6 @@
-import { useApiQuery } from '@/lib/use-api-query'
+import { useQuery } from '@tanstack/react-query'
+import { assertFound, mapCourse, mapLesson, mapModule, type CourseRow, type LessonRow, type ModuleRow, type Result } from '@/lib/db-mappers'
+import { supabase } from '@/lib/supabase'
 import type { Course, Lesson, Module } from '@/types'
 
 export const courseKeys = {
@@ -11,41 +13,96 @@ export const courseKeys = {
 }
 
 export function useCourses() {
-  return useApiQuery<Course[]>(courseKeys.all, '/api/courses')
+  return useQuery<Course[]>({
+    queryKey: courseKeys.all,
+    queryFn: async () => {
+      const { data, error } = (await supabase
+        .from('courses')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at')) as Result<CourseRow[]>
+      if (error) throw error
+      return (data ?? []).map(mapCourse)
+    },
+  })
 }
 
 export function useCourse(courseId: string | undefined) {
-  return useApiQuery<Course>(courseKeys.detail(courseId ?? ''), `/api/courses/${courseId ?? ''}`, {
+  return useQuery<Course>({
+    queryKey: courseKeys.detail(courseId ?? ''),
+    queryFn: async () => {
+      const { data, error } = (await supabase
+        .from('courses')
+        .select('*')
+        .eq('id', courseId)
+        .single()) as Result<CourseRow>
+      if (error) throw error
+      return mapCourse(assertFound(data, 'Course'))
+    },
     enabled: Boolean(courseId),
   })
 }
 
 export function useCourseModules(courseId: string | undefined) {
-  return useApiQuery<Module[]>(
-    courseKeys.modules(courseId ?? ''),
-    `/api/courses/${courseId ?? ''}/modules`,
-    { enabled: Boolean(courseId) },
-  )
+  return useQuery<Module[]>({
+    queryKey: courseKeys.modules(courseId ?? ''),
+    queryFn: async () => {
+      const { data, error } = (await supabase
+        .from('modules')
+        .select('*')
+        .eq('course_id', courseId)
+        .order('order_index')) as Result<ModuleRow[]>
+      if (error) throw error
+      return (data ?? []).map(mapModule)
+    },
+    enabled: Boolean(courseId),
+  })
 }
 
 export function useCourseLessons(courseId: string | undefined) {
-  return useApiQuery<Lesson[]>(
-    courseKeys.allLessons(courseId ?? ''),
-    `/api/courses/${courseId ?? ''}/lessons`,
-    { enabled: Boolean(courseId) },
-  )
+  return useQuery<Lesson[]>({
+    queryKey: courseKeys.allLessons(courseId ?? ''),
+    queryFn: async () => {
+      const { data, error } = (await supabase
+        .from('lessons')
+        .select('*')
+        .eq('course_id', courseId)
+        .order('order_index')) as Result<LessonRow[]>
+      if (error) throw error
+      return (data ?? []).map(mapLesson)
+    },
+    enabled: Boolean(courseId),
+  })
 }
 
 export function useModuleLessons(moduleId: string | undefined) {
-  return useApiQuery<Lesson[]>(
-    courseKeys.lessons(moduleId ?? ''),
-    `/api/modules/${moduleId ?? ''}/lessons`,
-    { enabled: Boolean(moduleId) },
-  )
+  return useQuery<Lesson[]>({
+    queryKey: courseKeys.lessons(moduleId ?? ''),
+    queryFn: async () => {
+      const { data, error } = (await supabase
+        .from('lessons')
+        .select('*')
+        .eq('module_id', moduleId)
+        .order('order_index')) as Result<LessonRow[]>
+      if (error) throw error
+      return (data ?? []).map(mapLesson)
+    },
+    enabled: Boolean(moduleId),
+  })
 }
 
 export function useLesson(lessonId: string | undefined) {
-  return useApiQuery<Lesson>(courseKeys.lesson(lessonId ?? ''), `/api/lessons/${lessonId ?? ''}`, {
+  return useQuery<Lesson>({
+    queryKey: courseKeys.lesson(lessonId ?? ''),
+    queryFn: async () => {
+      const { data, error } = (await supabase
+        .from('lessons')
+        .select('*')
+        .eq('id', lessonId)
+        .single()) as Result<LessonRow>
+      if (error) throw error
+      return mapLesson(assertFound(data, 'Lesson'))
+    },
     enabled: Boolean(lessonId),
   })
 }
