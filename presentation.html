@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LMS Student Portal — Final Sprint Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FBFBF8;
+    --ink: #1C2B27;
+    --ink-soft: #2A3F39;
+    --teal: #2F6F62;
+    --teal-light: #8FD4C1;
+    --teal-pale: #C7D6D2;
+    --amber: #8C5A1E;
+    --card-border: #E3E6E4;
+    --muted: #6A7179;
+    --white: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--ink);
+    font-family: 'Public Sans', Arial, sans-serif;
+    overflow: hidden;
+  }
+  .deck {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 6vh 7vw 9vh;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .slide.active { opacity: 1; visibility: visible; }
+  .slide.dark { background: var(--ink); color: var(--bg); }
+
+  .eyebrow {
+    font-size: clamp(14px, 1.4vw, 20px);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin: 0 0 10px;
+  }
+  .slide.cover .eyebrow, .slide.dark .eyebrow { color: var(--teal-light); }
+
+  h1 {
+    font-size: clamp(40px, 5.2vw, 72px);
+    font-weight: 700;
+    line-height: 1.05;
+    margin: 0 0 20px;
+  }
+  h2 {
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 700;
+    line-height: 1.1;
+    margin: 0 0 28px;
+  }
+  h3 {
+    font-size: clamp(18px, 1.6vw, 24px);
+    font-weight: 600;
+    color: var(--teal);
+    margin: 0 0 12px;
+  }
+  .slide.dark h3 { color: var(--teal-light); }
+
+  .slide.cover {
+    background: var(--ink);
+    color: var(--bg);
+    justify-content: center;
+    gap: 18px;
+  }
+  .slide.cover .subtitle { font-size: clamp(16px, 1.6vw, 22px); color: var(--teal-pale); margin: 0; }
+  .slide.cover .tech { font-size: clamp(13px, 1.1vw, 16px); color: var(--teal-light); letter-spacing: 1px; margin: 10px 0 0; }
+
+  .row { display: flex; gap: 2.2vw; flex: 1; min-height: 0; }
+  .col-main { flex: 1.6; display: flex; flex-direction: column; gap: 18px; min-height: 0; }
+  .col-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--white);
+    padding: clamp(18px, 2.4vw, 32px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    align-self: flex-start;
+  }
+  .lede { font-size: clamp(16px, 1.8vw, 24px); line-height: 1.5; color: var(--ink-soft); margin: 0; }
+  .slide.dark .lede { color: var(--teal-pale); }
+  ul.bullets { font-size: clamp(14px, 1.4vw, 19px); line-height: 1.65; color: var(--ink-soft); margin: 0; padding-left: 22px; }
+  ul.bullets li { margin-bottom: 6px; }
+  .key-tech { font-size: clamp(13px, 1.2vw, 16px); line-height: 1.5; color: var(--ink-soft); margin: 0; }
+  .verified { font-size: clamp(11px, 1vw, 14px); color: var(--muted); letter-spacing: 0.4px; margin: 6px 0 0; }
+
+  .status-cards, .cards-row { display: flex; gap: 2.2vw; margin-top: 10px; }
+  .status-card, .card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--white);
+    padding: clamp(18px, 2.4vw, 32px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+  }
+  .status-card.ahead h3 { color: var(--amber); }
+  .status-card ul { font-size: clamp(14px, 1.3vw, 18px); line-height: 1.55; color: var(--ink-soft); margin: 0; padding-left: 20px; }
+  .card p { font-size: clamp(14px, 1.3vw, 18px); line-height: 1.5; color: var(--ink-soft); margin: 0; }
+  .card.mono p { font-family: 'Public Sans', monospace; white-space: pre-line; }
+
+  .cards-grid { display: flex; flex-direction: column; gap: 1.6vh; margin-top: 8px; flex: 1; min-height: 0; }
+  .cards-grid-row { display: flex; gap: 2.2vw; flex: 1; }
+  .tile {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--white);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: clamp(14px, 1.8vw, 26px);
+  }
+  .tile .num { font-weight: 700; font-size: clamp(14px, 1.3vw, 18px); color: var(--amber); margin: 0; }
+  .tile h4 { font-size: clamp(15px, 1.4vw, 19px); font-weight: 600; margin: 0; color: var(--ink); line-height: 1.25; }
+  .tile.final { background: var(--teal); border-color: var(--teal); }
+  .tile.final .num { color: var(--teal-light); }
+  .tile.final h4, .tile.final p { color: var(--bg); }
+  .tile p { font-size: clamp(13px, 1.2vw, 16px); color: var(--ink-soft); margin: 0; line-height: 1.4; }
+  .tile.spacer { background: transparent; border: none; }
+
+  .flow { display: flex; align-items: center; gap: 1.6vw; margin-top: 8px; }
+  .flow-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    background: var(--white);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: clamp(18px, 2.2vw, 30px) clamp(10px, 1.4vw, 18px);
+  }
+  .flow-box.highlight { background: var(--teal); border-color: var(--teal); }
+  .flow-box.highlight h4, .flow-box.highlight p { color: var(--bg); }
+  .flow-box h4 { font-size: clamp(16px, 1.5vw, 21px); font-weight: 600; margin: 0; }
+  .flow-box p { font-size: clamp(12px, 1.1vw, 15px); color: var(--ink-soft); margin: 0; line-height: 1.35; }
+  .flow-arrow { flex: none; font-size: clamp(18px, 1.8vw, 26px); color: var(--amber); font-weight: 700; }
+
+  .stat-row { display: flex; gap: 1.6vw; margin-top: 8px; }
+  .stat-tile {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: var(--teal);
+    border-radius: 16px;
+    padding: clamp(16px, 2vw, 26px) 10px;
+  }
+  .stat-tile .num { font-size: clamp(32px, 4vw, 52px); font-weight: 700; color: var(--bg); margin: 0; line-height: 1; }
+  .stat-tile .label { font-size: clamp(12px, 1.1vw, 15px); color: var(--teal-pale); margin: 2px 0 0; }
+
+  .big-num {
+    font-size: clamp(110px, 14vw, 200px);
+    font-weight: 700;
+    line-height: 0.95;
+    color: var(--bg);
+    margin: 4px 0;
+  }
+  .two-col-list { display: flex; gap: 2.4vw; margin-top: 4px; }
+  .two-col-list ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .two-col-list li { font-size: clamp(15px, 1.5vw, 21px); color: var(--bg); display: flex; align-items: center; gap: 10px; }
+  .two-col-list li::before { content: '✓'; color: var(--teal-light); font-weight: 700; }
+
+  .links-row { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+  .links-row .link-line { font-family: 'Public Sans', monospace; font-size: clamp(16px, 1.6vw, 22px); color: var(--teal-light); }
+
+  .pagenum {
+    position: absolute;
+    left: 7vw;
+    bottom: 4vh;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .slide.dark .pagenum { color: var(--teal-pale); opacity: 0.6; }
+  .slide.cover .pagenum { display: none; }
+
+  .controls {
+    position: fixed;
+    bottom: 18px;
+    right: 24px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    z-index: 10;
+  }
+  .ctrl-btn {
+    background: rgba(28,43,39,0.85);
+    color: #FBFBF8;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: 'Public Sans', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .ctrl-btn:hover { background: rgba(47,111,98,0.95); }
+  .counter {
+    font-family: 'Public Sans', Arial, sans-serif;
+    font-size: 13px;
+    color: #C7D6D2;
+    min-width: 56px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <section class="slide cover active" data-index="0">
+    <p class="eyebrow">ALT School · Front-End Engineering</p>
+    <h1>LMS Student Learning &amp; Assessment Portal</h1>
+    <p class="subtitle">From front end to back end — a sprint-by-sprint build.</p>
+    <p class="tech">Final Sprint Review</p>
+  </section>
+
+  <section class="slide" data-index="1">
+    <p class="eyebrow">The Project</p>
+    <h2>A student portal that teaches, tests, and tracks</h2>
+    <p class="lede" style="max-width:1300px">Built for ALT School as a front-end engineering capstone, then carried past the brief onto a real Supabase backend — one app, from the browser down to the database.</p>
+    <div class="cards-row" style="margin-top:2.4vh">
+      <div class="card">
+        <h3>Learn</h3>
+        <p>Video, article, and assignment lessons across a real front-end-development curriculum.</p>
+      </div>
+      <div class="card">
+        <h3>Assess</h3>
+        <p>A nine-type quiz engine that grades itself and gives instant, per-question feedback.</p>
+      </div>
+      <div class="card">
+        <h3>Track</h3>
+        <p>Per-student progress, bookmarked notes, and a downloadable resource hub.</p>
+      </div>
+    </div>
+    <p class="pagenum">2 / 12</p>
+  </section>
+
+  <section class="slide" data-index="2">
+    <p class="eyebrow">Technology</p>
+    <h2>The stack, end to end</h2>
+    <div class="cards-row">
+      <div class="card">
+        <h3>Front end</h3>
+        <ul class="bullets">
+          <li>React 19 + TypeScript (strict)</li>
+          <li>Vite + Tailwind CSS v4</li>
+          <li>React Router 7</li>
+          <li>TanStack Query v5</li>
+          <li>shadcn/ui on Base UI</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Back end</h3>
+        <ul class="bullets">
+          <li>Supabase (Postgres)</li>
+          <li>Supabase Auth</li>
+          <li>Row-Level Security</li>
+          <li>Postgres triggers</li>
+          <li>RPC functions</li>
+        </ul>
+      </div>
+    </div>
+    <p class="pagenum">3 / 12</p>
+  </section>
+
+  <section class="slide" data-index="3">
+    <p class="eyebrow">Architecture</p>
+    <h2>How it fits together</h2>
+    <div class="flow">
+      <div class="flow-box">
+        <h4>GitHub</h4>
+        <p>Source of truth</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <h4>Vercel</h4>
+        <p>Build + host, deploy on push</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight">
+        <h4>Browser</h4>
+        <p>React 19 SPA, TanStack Query</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <h4>Supabase</h4>
+        <p>Auth + Postgres, guarded by RLS</p>
+      </div>
+    </div>
+    <p class="lede" style="max-width:1300px;margin-top:3vh">No custom server in between — the browser talks to Supabase directly over its auto-generated REST API, and Row-Level Security does the job a backend server usually would.</p>
+    <p class="pagenum">4 / 12</p>
+  </section>
+
+  <section class="slide" data-index="4">
+    <p class="eyebrow">The Build</p>
+    <h2>Seven sprints, one app</h2>
+    <div class="cards-grid">
+      <div class="cards-grid-row">
+        <div class="tile"><p class="num">01</p><h4>Setup &amp; Types</h4><p>Strict TS, routing, domain types</p></div>
+        <div class="tile"><p class="num">02</p><h4>Shell &amp; Mock API</h4><p>App shell, nav, MSW mock layer</p></div>
+        <div class="tile"><p class="num">03</p><h4>Core Functionality</h4><p>Quiz engine, notes, progress</p></div>
+        <div class="tile"><p class="num">04</p><h4>Advanced TS &amp; API</h4><p>Generic hooks, error boundaries</p></div>
+      </div>
+      <div class="cards-grid-row">
+        <div class="tile"><p class="num">05</p><h4>Testing &amp; A11y</h4><p>Vitest, Lighthouse, WCAG fixes</p></div>
+        <div class="tile"><p class="num">06</p><h4>Deployment &amp; CI/CD</h4><p>GitHub, Vercel, SPA rewrites</p></div>
+        <div class="tile final"><p class="num">07</p><h4>Real Backend</h4><p>Self-initiated Supabase migration</p></div>
+        <div class="tile spacer"></div>
+      </div>
+    </div>
+    <p class="pagenum">5 / 12</p>
+  </section>
+
+  <section class="slide" data-index="5">
+    <p class="eyebrow">Front End</p>
+    <h2>What the student sees</h2>
+    <div class="cards-grid">
+      <div class="cards-grid-row">
+        <div class="tile"><h4>Dashboard</h4><p>Time-of-day greeting, progress stats, resume-where-left-off</p></div>
+        <div class="tile"><h4>Course player</h4><p>Video, article, quiz, and assignment lesson types</p></div>
+        <div class="tile"><h4>Quiz engine</h4><p>Nine question types, instant auto-grading</p></div>
+      </div>
+      <div class="cards-grid-row">
+        <div class="tile"><h4>Notes</h4><p>Create, edit, bookmark, and delete, per lesson</p></div>
+        <div class="tile"><h4>Resource hub</h4><p>Downloadable files with a live download counter</p></div>
+        <div class="tile"><h4>Auth</h4><p>Real sign-up and sign-in, protected routes</p></div>
+      </div>
+    </div>
+    <p class="pagenum">6 / 12</p>
+  </section>
+
+  <section class="slide dark" data-index="6">
+    <p class="eyebrow">Assessment</p>
+    <h1 class="big-num">9</h1>
+    <h2 style="color:var(--bg);font-size:clamp(28px,3.4vw,44px)">question types, one pure scoring engine</h2>
+    <p class="lede" style="max-width:720px">A single discriminated-union model drives every question — and every answer. Scored server-side on submit.</p>
+    <div class="two-col-list" style="margin-top:3vh">
+      <ul>
+        <li>Single choice</li>
+        <li>Multiple choice</li>
+        <li>True / false</li>
+        <li>Short text</li>
+        <li>Long text</li>
+      </ul>
+      <ul>
+        <li>Numeric</li>
+        <li>Matching</li>
+        <li>Ordering</li>
+        <li>Fill in the blank</li>
+      </ul>
+    </div>
+    <p class="pagenum">7 / 12</p>
+  </section>
+
+  <section class="slide" data-index="7">
+    <p class="eyebrow">Authentication</p>
+    <h2>Real accounts, real sessions</h2>
+    <div class="flow">
+      <div class="flow-box"><h4>Sign up</h4><p>Email, password, name — via Supabase Auth</p></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><h4>DB trigger</h4><p>Auto-creates the matching profile row</p></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><h4>Sign in</h4><p>Session tracked app-wide via context</p></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><h4>Route guard</h4><p>Signed-out visits redirect to /login</p></div>
+    </div>
+    <p class="lede" style="max-width:1300px;margin-top:3vh">No page in the app renders for a signed-out visitor — every route sits behind a single <b>RequireAuth</b> wrapper.</p>
+    <p class="pagenum">8 / 12</p>
+  </section>
+
+  <section class="slide" data-index="8">
+    <p class="eyebrow">Back End</p>
+    <h2>One Postgres schema, two kinds of table</h2>
+    <div class="cards-row">
+      <div class="card mono">
+        <h3>Catalog — shared, read-only</h3>
+        <p>courses → modules → lessons
+quizzes → questions (payload jsonb)
+resources</p>
+        <p style="font-family:'Public Sans',Arial,sans-serif;margin-top:6px">Nine question types, one payload column — matching tables instead of ~15 sparse ones.</p>
+      </div>
+      <div class="card mono">
+        <h3>Personal — private, per student</h3>
+        <p>profiles
+notes
+lesson_progress
+course_progress
+quiz_attempts</p>
+        <p style="font-family:'Public Sans',Arial,sans-serif;margin-top:6px">One row per student, per table — never visible to another student.</p>
+      </div>
+    </div>
+    <p class="pagenum">9 / 12</p>
+  </section>
+
+  <section class="slide" data-index="9">
+    <p class="eyebrow">Quality</p>
+    <h2>Verified, not assumed</h2>
+    <div class="stat-row">
+      <div class="stat-tile"><p class="num">99</p><p class="label">Performance</p></div>
+      <div class="stat-tile"><p class="num">100</p><p class="label">Accessibility</p></div>
+      <div class="stat-tile"><p class="num">100</p><p class="label">Best Practices</p></div>
+      <div class="stat-tile"><p class="num">100</p><p class="label">SEO</p></div>
+    </div>
+    <p class="verified" style="text-align:center;margin-top:4px">Lighthouse, production build</p>
+    <div class="cards-row" style="margin-top:2vh">
+      <div class="card"><p><b>22 / 22</b> Vitest tests passing — scoring engine, async states, full quiz &amp; notes flows</p></div>
+      <div class="card"><p>Strict ESLint, jsx-a11y, skip link, and a real WCAG contrast fix</p></div>
+    </div>
+    <p class="pagenum">10 / 12</p>
+  </section>
+
+  <section class="slide" data-index="10">
+    <p class="eyebrow">Deployment</p>
+    <h2>Push, and it ships</h2>
+    <div class="flow">
+      <div class="flow-box"><h4>git push</h4><p>to GitHub main</p></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><h4>Vercel builds</h4><p>tsc -b &amp;&amp; vite build</p></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight"><h4>Live URL</h4><p>auto-deployed, every push</p></div>
+    </div>
+    <div class="cards-row" style="margin-top:3vh">
+      <div class="card"><p><b>vercel.json</b> — SPA rewrite so client routes survive a refresh</p></div>
+      <div class="card"><p>Supabase URL + publishable key as Vercel env vars</p></div>
+    </div>
+    <p class="pagenum">11 / 12</p>
+  </section>
+
+  <section class="slide dark" data-index="11">
+    <p class="eyebrow">Front End to Back End</p>
+    <h1>Thank you</h1>
+    <p class="subtitle">Questions, demo requests, or a walk through the code — happy to dig in.</p>
+    <div class="links-row">
+      <p class="link-line">github.com/yuusuphdev9/lms-portal</p>
+      <p class="link-line">lms-portal-pi-eight.vercel.app</p>
+    </div>
+  </section>
+
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn" id="prevBtn" title="Previous (←)">‹ Prev</button>
+  <span class="counter" id="counter">1 / 12</span>
+  <button class="ctrl-btn" id="nextBtn" title="Next (→ / Space)">Next ›</button>
+  <button class="ctrl-btn" id="fsBtn" title="Fullscreen (f)">⛶ Fullscreen</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  let current = 0;
+
+  function show(i) {
+    if (i < 0 || i >= slides.length) return;
+    slides[current].classList.remove('active');
+    current = i;
+    slides[current].classList.add('active');
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+  }
+
+  function next() { show(current + 1); }
+  function prev() { show(current - 1); }
+
+  document.getElementById('nextBtn').addEventListener('click', next);
+  document.getElementById('prevBtn').addEventListener('click', prev);
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+  document.getElementById('fsBtn').addEventListener('click', toggleFullscreen);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+    else if (e.key.toLowerCase() === 'f') { e.preventDefault(); toggleFullscreen(); }
+  });
+
+  show(0);
+</script>
+</body>
+</html>

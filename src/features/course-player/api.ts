@@ -12,33 +12,77 @@ export const courseKeys = {
   lesson: (lessonId: string) => ['lessons', lessonId] as const,
 }
 
+async function fetchCourses(): Promise<Course[]> {
+  const { data, error } = (await supabase
+    .from('courses')
+    .select('*')
+    .eq('status', 'published')
+    .order('created_at')) as Result<CourseRow[]>
+  if (error) throw error
+  return (data ?? []).map(mapCourse)
+}
+
+async function fetchCourse(courseId: string): Promise<Course> {
+  const { data, error } = (await supabase
+    .from('courses')
+    .select('*')
+    .eq('id', courseId)
+    .single()) as Result<CourseRow>
+  if (error) throw error
+  return mapCourse(assertFound(data, 'Course'))
+}
+
+async function fetchCourseModules(courseId: string): Promise<Module[]> {
+  const { data, error } = (await supabase
+    .from('modules')
+    .select('*')
+    .eq('course_id', courseId)
+    .order('order_index')) as Result<ModuleRow[]>
+  if (error) throw error
+  return (data ?? []).map(mapModule)
+}
+
+async function fetchCourseLessons(courseId: string): Promise<Lesson[]> {
+  const { data, error } = (await supabase
+    .from('lessons')
+    .select('*')
+    .eq('course_id', courseId)
+    .order('order_index')) as Result<LessonRow[]>
+  if (error) throw error
+  return (data ?? []).map(mapLesson)
+}
+
+async function fetchModuleLessons(moduleId: string): Promise<Lesson[]> {
+  const { data, error } = (await supabase
+    .from('lessons')
+    .select('*')
+    .eq('module_id', moduleId)
+    .order('order_index')) as Result<LessonRow[]>
+  if (error) throw error
+  return (data ?? []).map(mapLesson)
+}
+
+async function fetchLesson(lessonId: string): Promise<Lesson> {
+  const { data, error } = (await supabase
+    .from('lessons')
+    .select('*')
+    .eq('id', lessonId)
+    .single()) as Result<LessonRow>
+  if (error) throw error
+  return mapLesson(assertFound(data, 'Lesson'))
+}
+
 export function useCourses() {
   return useQuery<Course[]>({
     queryKey: courseKeys.all,
-    queryFn: async () => {
-      const { data, error } = (await supabase
-        .from('courses')
-        .select('*')
-        .eq('status', 'published')
-        .order('created_at')) as Result<CourseRow[]>
-      if (error) throw error
-      return (data ?? []).map(mapCourse)
-    },
+    queryFn: fetchCourses,
   })
 }
 
 export function useCourse(courseId: string | undefined) {
   return useQuery<Course>({
     queryKey: courseKeys.detail(courseId ?? ''),
-    queryFn: async () => {
-      const { data, error } = (await supabase
-        .from('courses')
-        .select('*')
-        .eq('id', courseId)
-        .single()) as Result<CourseRow>
-      if (error) throw error
-      return mapCourse(assertFound(data, 'Course'))
-    },
+    queryFn: () => fetchCourse(courseId ?? ''),
     enabled: Boolean(courseId),
   })
 }
@@ -46,15 +90,7 @@ export function useCourse(courseId: string | undefined) {
 export function useCourseModules(courseId: string | undefined) {
   return useQuery<Module[]>({
     queryKey: courseKeys.modules(courseId ?? ''),
-    queryFn: async () => {
-      const { data, error } = (await supabase
-        .from('modules')
-        .select('*')
-        .eq('course_id', courseId)
-        .order('order_index')) as Result<ModuleRow[]>
-      if (error) throw error
-      return (data ?? []).map(mapModule)
-    },
+    queryFn: () => fetchCourseModules(courseId ?? ''),
     enabled: Boolean(courseId),
   })
 }
@@ -62,15 +98,7 @@ export function useCourseModules(courseId: string | undefined) {
 export function useCourseLessons(courseId: string | undefined) {
   return useQuery<Lesson[]>({
     queryKey: courseKeys.allLessons(courseId ?? ''),
-    queryFn: async () => {
-      const { data, error } = (await supabase
-        .from('lessons')
-        .select('*')
-        .eq('course_id', courseId)
-        .order('order_index')) as Result<LessonRow[]>
-      if (error) throw error
-      return (data ?? []).map(mapLesson)
-    },
+    queryFn: () => fetchCourseLessons(courseId ?? ''),
     enabled: Boolean(courseId),
   })
 }
@@ -78,15 +106,7 @@ export function useCourseLessons(courseId: string | undefined) {
 export function useModuleLessons(moduleId: string | undefined) {
   return useQuery<Lesson[]>({
     queryKey: courseKeys.lessons(moduleId ?? ''),
-    queryFn: async () => {
-      const { data, error } = (await supabase
-        .from('lessons')
-        .select('*')
-        .eq('module_id', moduleId)
-        .order('order_index')) as Result<LessonRow[]>
-      if (error) throw error
-      return (data ?? []).map(mapLesson)
-    },
+    queryFn: () => fetchModuleLessons(moduleId ?? ''),
     enabled: Boolean(moduleId),
   })
 }
@@ -94,15 +114,19 @@ export function useModuleLessons(moduleId: string | undefined) {
 export function useLesson(lessonId: string | undefined) {
   return useQuery<Lesson>({
     queryKey: courseKeys.lesson(lessonId ?? ''),
-    queryFn: async () => {
-      const { data, error } = (await supabase
-        .from('lessons')
-        .select('*')
-        .eq('id', lessonId)
-        .single()) as Result<LessonRow>
-      if (error) throw error
-      return mapLesson(assertFound(data, 'Lesson'))
-    },
+    queryFn: () => fetchLesson(lessonId ?? ''),
     enabled: Boolean(lessonId),
   })
+}
+
+/**
+ * Plain (non-hook) fetchers, exported so code outside a component render —
+ * like a ForesightJS hover-prefetch callback — can warm the TanStack Query
+ * cache with `queryClient.prefetchQuery` using the exact same fetching logic
+ * the hooks above use.
+ */
+export const coursePlayerFetchers = {
+  courseLessons: fetchCourseLessons,
+  courseModules: fetchCourseModules,
+  lesson: fetchLesson,
 }

@@ -3,11 +3,12 @@ import type { ComponentType } from 'react'
 import { Link } from 'react-router'
 import { AsyncData } from '@/components/ui/async-data'
 import { useAuth } from '@/features/auth/AuthContext'
-import { useCourses, useLesson } from '@/features/course-player/api'
+import { coursePlayerFetchers, courseKeys, useCourses, useLesson } from '@/features/course-player/api'
 import { useNotes } from '@/features/notes/api'
 import { useCourseProgressList } from '@/features/progress/api'
+import { usePrefetchLink } from '@/hooks/use-prefetch-link'
 import { accentForTag, cn, timeAgo, timeOfDayGreeting } from '@/lib/utils'
-import type { Course } from '@/types'
+import type { Course, CourseProgress } from '@/types'
 
 export function DashboardPage() {
   const { profile } = useAuth()
@@ -80,10 +81,18 @@ function DashboardBody({
 }) {
   const continueCourse = courses.find((c) => c.id === continueCourseId)
 
+  const continuePrefetchRef = usePrefetchLink(
+    `continue-course-${continueCourse?.id ?? 'none'}`,
+    courseKeys.allLessons(continueCourse?.id ?? ''),
+    () => coursePlayerFetchers.courseLessons(continueCourse?.id ?? ''),
+    Boolean(continueCourse),
+  )
+
   return (
     <>
       {continueCourse && (
         <Link
+          ref={continuePrefetchRef}
           to={`/courses/${continueCourse.id}`}
           className="group relative isolate flex items-center gap-5 overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 px-6 py-5 text-primary-foreground shadow-sm transition-transform hover:-translate-y-0.5"
         >
@@ -140,74 +149,94 @@ function DashboardBody({
       <div className="flex flex-col gap-3">
         <h2 className="text-base font-semibold">My courses</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {courses.map((course) => {
-            const courseProgress = progress?.find((p) => p.courseId === course.id)
-            const percent = courseProgress?.percentComplete ?? 0
-            return (
-              <Link
-                key={course.id}
-                to={`/courses/${course.id}`}
-                className="flex flex-col gap-3.5 rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex flex-wrap gap-1.5">
-                    {course.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="flex items-center gap-1.5 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-accent-foreground"
-                      >
-                        <span
-                          aria-hidden="true"
-                          className={cn('size-1.5 rounded-full', {
-                            'bg-primary': accentForTag(tag) === 'primary',
-                            'bg-clay': accentForTag(tag) === 'clay',
-                            'bg-info': accentForTag(tag) === 'info',
-                            'bg-success': accentForTag(tag) === 'success',
-                          })}
-                        />
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <span className="shrink-0 text-[11px] text-muted-foreground">
-                    updated {timeAgo(course.updatedAt)}
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <h3 className="font-heading text-base font-semibold">{course.title}</h3>
-                  <p className="text-sm text-muted-foreground">{course.description}</p>
-                </div>
-
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="size-3.5" />
-                    {course.estimatedDurationMinutes} min
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">
-                      {courseProgress
-                        ? `${String(courseProgress.completedLessonIds.length)} of ${String(courseProgress.totalLessons)} lessons complete`
-                        : 'Not started'}
-                    </span>
-                    <span className="font-mono font-semibold text-primary">{percent}%</span>
-                  </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-accent">
-                    <div
-                      className={cn('h-full rounded-full bg-primary transition-all')}
-                      style={{ width: `${String(percent)}%` }}
-                    />
-                  </div>
-                </div>
-              </Link>
-            )
-          })}
+          {courses.map((course) => (
+            <CourseCard
+              key={course.id}
+              course={course}
+              courseProgress={progress?.find((p) => p.courseId === course.id)}
+            />
+          ))}
         </div>
       </div>
     </>
+  )
+}
+
+function CourseCard({
+  course,
+  courseProgress,
+}: {
+  course: Course
+  courseProgress: CourseProgress | undefined
+}) {
+  const percent = courseProgress?.percentComplete ?? 0
+
+  const prefetchRef = usePrefetchLink(
+    `course-card-${course.id}`,
+    courseKeys.allLessons(course.id),
+    () => coursePlayerFetchers.courseLessons(course.id),
+  )
+
+  return (
+    <Link
+      ref={prefetchRef}
+      to={`/courses/${course.id}`}
+      className="flex flex-col gap-3.5 rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-wrap gap-1.5">
+          {course.tags.map((tag) => (
+            <span
+              key={tag}
+              className="flex items-center gap-1.5 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-accent-foreground"
+            >
+              <span
+                aria-hidden="true"
+                className={cn('size-1.5 rounded-full', {
+                  'bg-primary': accentForTag(tag) === 'primary',
+                  'bg-clay': accentForTag(tag) === 'clay',
+                  'bg-info': accentForTag(tag) === 'info',
+                  'bg-success': accentForTag(tag) === 'success',
+                })}
+              />
+              {tag}
+            </span>
+          ))}
+        </div>
+        <span className="shrink-0 text-[11px] text-muted-foreground">
+          updated {timeAgo(course.updatedAt)}
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <h3 className="font-heading text-base font-semibold">{course.title}</h3>
+        <p className="text-sm text-muted-foreground">{course.description}</p>
+      </div>
+
+      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <Clock className="size-3.5" />
+          {course.estimatedDurationMinutes} min
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">
+            {courseProgress
+              ? `${String(courseProgress.completedLessonIds.length)} of ${String(courseProgress.totalLessons)} lessons complete`
+              : 'Not started'}
+          </span>
+          <span className="font-mono font-semibold text-primary">{percent}%</span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-accent">
+          <div
+            className={cn('h-full rounded-full bg-primary transition-all')}
+            style={{ width: `${String(percent)}%` }}
+          />
+        </div>
+      </div>
+    </Link>
   )
 }
 

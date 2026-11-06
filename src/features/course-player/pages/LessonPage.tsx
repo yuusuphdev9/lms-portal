@@ -2,12 +2,13 @@ import { ArrowLeft, ArrowRight, CheckCircle2, Download, FileText, PlayCircle } f
 import { Link, useParams } from 'react-router'
 import { AsyncData } from '@/components/ui/async-data'
 import { LessonContent } from '@/features/course-player/components/LessonContent'
-import { useCourseLessons, useLesson } from '@/features/course-player/api'
+import { coursePlayerFetchers, courseKeys, useCourseLessons, useLesson } from '@/features/course-player/api'
 import { lessonHref } from '@/features/course-player/lesson-link'
 import { useMarkLessonProgress, useLessonProgressList } from '@/features/progress/api'
 import { useResources } from '@/features/resources/api'
+import { usePrefetchLink } from '@/hooks/use-prefetch-link'
 import { cn } from '@/lib/utils'
-import type { AssignmentLesson, Resource, VideoLesson } from '@/types'
+import type { AssignmentLesson, Lesson, Resource, VideoLesson } from '@/types'
 
 export function LessonPage() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>()
@@ -61,48 +62,14 @@ export function LessonPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                {prevLesson && (
-                  <Link
-                    to={lessonHref(safeCourseId, prevLesson)}
-                    className="flex items-center gap-1.5 truncate text-sm text-muted-foreground hover:underline"
-                  >
-                    <ArrowLeft className="size-3.5 shrink-0" />
-                    <span className="truncate">{prevLesson.title}</span>
-                  </Link>
-                )}
-              </div>
-
-              {!isCompleted ? (
-                <button
-                  type="button"
-                  onClick={handleMarkComplete}
-                  disabled={markProgress.isPending}
-                  className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity disabled:opacity-50"
-                >
-                  <CheckCircle2 className="size-4" />
-                  Mark complete
-                </button>
-              ) : (
-                <span className="flex shrink-0 items-center gap-1.5 text-sm font-medium text-success">
-                  <CheckCircle2 className="size-4" />
-                  Completed
-                </span>
-              )}
-
-              <div className="min-w-0 flex-1 text-right">
-                {nextLesson && (
-                  <Link
-                    to={lessonHref(safeCourseId, nextLesson)}
-                    className="flex items-center justify-end gap-1.5 truncate text-sm text-muted-foreground hover:underline"
-                  >
-                    <span className="truncate">{nextLesson.title}</span>
-                    <ArrowRight className="size-3.5 shrink-0" />
-                  </Link>
-                )}
-              </div>
-            </div>
+            <LessonFooterNav
+              safeCourseId={safeCourseId}
+              prevLesson={prevLesson}
+              nextLesson={nextLesson}
+              isCompleted={isCompleted}
+              onMarkComplete={handleMarkComplete}
+              isMarkingComplete={markProgress.isPending}
+            />
           </div>
         )
       }}
@@ -110,12 +77,113 @@ export function LessonPage() {
   )
 }
 
+function LessonFooterNav({
+  safeCourseId,
+  prevLesson,
+  nextLesson,
+  isCompleted,
+  onMarkComplete,
+  isMarkingComplete,
+}: {
+  safeCourseId: string
+  prevLesson: Lesson | undefined
+  nextLesson: Lesson | undefined
+  isCompleted: boolean
+  onMarkComplete: () => void
+  isMarkingComplete: boolean
+}) {
+  // A quiz lesson navigates to a separate quiz player route with its own data
+  // shape (not `courseKeys.lesson`), so there's nothing useful to prefetch for it here.
+  const prevPrefetchRef = usePrefetchLink(
+    `prev-lesson-${prevLesson?.id ?? 'none'}`,
+    courseKeys.lesson(prevLesson?.id ?? ''),
+    () => coursePlayerFetchers.lesson(prevLesson?.id ?? ''),
+    Boolean(prevLesson) && prevLesson?.type !== 'quiz',
+  )
+  const nextPrefetchRef = usePrefetchLink(
+    `next-lesson-${nextLesson?.id ?? 'none'}`,
+    courseKeys.lesson(nextLesson?.id ?? ''),
+    () => coursePlayerFetchers.lesson(nextLesson?.id ?? ''),
+    Boolean(nextLesson) && nextLesson?.type !== 'quiz',
+  )
+
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        {prevLesson && (
+          <Link
+            ref={prevPrefetchRef}
+            to={lessonHref(safeCourseId, prevLesson)}
+            className="flex items-center gap-1.5 truncate text-sm text-muted-foreground hover:underline"
+          >
+            <ArrowLeft className="size-3.5 shrink-0" />
+            <span className="truncate">{prevLesson.title}</span>
+          </Link>
+        )}
+      </div>
+
+      {!isCompleted ? (
+        <button
+          type="button"
+          onClick={onMarkComplete}
+          disabled={isMarkingComplete}
+          className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity disabled:opacity-50"
+        >
+          <CheckCircle2 className="size-4" />
+          Mark complete
+        </button>
+      ) : (
+        <span className="flex shrink-0 items-center gap-1.5 text-sm font-medium text-success">
+          <CheckCircle2 className="size-4" />
+          Completed
+        </span>
+      )}
+
+      <div className="min-w-0 flex-1 text-right">
+        {nextLesson && (
+          <Link
+            ref={nextPrefetchRef}
+            to={lessonHref(safeCourseId, nextLesson)}
+            className="flex items-center justify-end gap-1.5 truncate text-sm text-muted-foreground hover:underline"
+          >
+            <span className="truncate">{nextLesson.title}</span>
+            <ArrowRight className="size-3.5 shrink-0" />
+          </Link>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function VideoLessonBody({ lesson }: { lesson: VideoLesson }) {
+  const isEmbeddable = lesson.videoUrl.startsWith('https://www.youtube.com/embed/')
+  const isDirectFile = /\.(mp4|webm|ogg)$/i.test(lesson.videoUrl)
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex aspect-video items-center justify-center rounded-xl bg-accent/60 text-accent-foreground">
-        <PlayCircle className="size-14 opacity-70" />
-      </div>
+      {isEmbeddable ? (
+        <div className="aspect-video overflow-hidden rounded-xl bg-accent/60">
+          <iframe
+            src={lesson.videoUrl}
+            title={lesson.title}
+            className="size-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      ) : isDirectFile ? (
+        <video
+          src={lesson.videoUrl}
+          controls
+          className="aspect-video w-full rounded-xl bg-accent/60"
+        >
+          Your browser doesn&apos;t support embedded video.
+        </video>
+      ) : (
+        <div className="flex aspect-video items-center justify-center rounded-xl bg-accent/60 text-accent-foreground">
+          <PlayCircle className="size-14 opacity-70" />
+        </div>
+      )}
       {lesson.transcript && (
         <div className="flex flex-col gap-1.5 border-t border-border pt-4">
           <h4 className="font-heading text-sm font-semibold">Transcript</h4>
