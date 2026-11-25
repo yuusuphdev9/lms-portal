@@ -4,11 +4,7 @@ import { Link, useParams } from 'react-router'
 import { AsyncData } from '@/components/ui/async-data'
 import { QuestionField } from '@/features/quizzes/components/QuestionField'
 import { useQuiz, useSubmitQuizAttempt } from '@/features/quizzes/api'
-import {
-  CONFIDENCE_LABELS,
-  calibrateConfidence,
-  summarizeCalibration,
-} from '@/features/quizzes/calibration'
+import { summarizeConfidenceAccuracy } from '@/features/quizzes/calibration'
 import { scoreQuiz, type QuizResult } from '@/features/quizzes/scoring'
 import { cn } from '@/lib/utils'
 import type { ConfidenceLevel, QuestionAnswer } from '@/types'
@@ -54,9 +50,9 @@ export function QuizAttemptPage() {
           setSubmitAttempted(false)
         }
 
-        const calibration = result ? calibrateConfidence(result.perQuestion, confidences) : null
-        const calibrationVerdict = calibration ? summarizeCalibration(calibration) : null
-        const ratedBuckets = calibration?.filter((bucket) => bucket.answered > 0) ?? []
+        const confidenceSummary = result
+          ? summarizeConfidenceAccuracy(result.passed, result.perQuestion, confidences)
+          : null
 
         return (
           <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -96,44 +92,21 @@ export function QuizAttemptPage() {
               </div>
             )}
 
-            {result && (
-              <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm">
-                <h3 className="font-heading text-sm font-semibold">Confidence calibration</h3>
-                {ratedBuckets.length > 0 ? (
-                  <>
-                    <ul className="flex flex-col gap-2">
-                      {ratedBuckets.map((bucket) => (
-                        <li key={bucket.level} className="flex items-center justify-between gap-3 text-sm">
-                          <span className="text-muted-foreground">{CONFIDENCE_LABELS[bucket.level]}</span>
-                          <span className="font-medium">
-                            {bucket.correct}/{bucket.answered} correct ({bucket.accuracyPercent}%)
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                    {calibrationVerdict === 'well-calibrated' && (
-                      <p className="text-xs text-muted-foreground">
-                        Your confidence tracked your accuracy well — the more sure you felt, the more
-                        often you were right.
-                      </p>
-                    )}
-                    {calibrationVerdict === 'overconfident' && (
-                      <p className="text-xs text-muted-foreground">
-                        You did no better (or worse) on questions you felt certain about than ones
-                        you weren&rsquo;t sure of — worth double-checking answers that feel obvious.
-                      </p>
-                    )}
-                    {calibrationVerdict === 'not-enough-data' && (
-                      <p className="text-xs text-muted-foreground">
-                        Rate your confidence on more questions next time to see this breakdown.
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    You didn&rsquo;t rate your confidence on any question this attempt.
-                  </p>
-                )}
+            {result && confidenceSummary && (
+              <div className="flex flex-col gap-1.5 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <h3 className="font-heading text-sm font-semibold text-muted-foreground">
+                  Confidence check
+                </h3>
+                <p
+                  className={cn(
+                    'font-heading text-lg font-semibold',
+                    confidenceSummary.verdict === 'strong-confident' && 'text-success',
+                    confidenceSummary.verdict === 'weak-confident' && 'text-destructive',
+                  )}
+                >
+                  {confidenceSummary.headline}
+                </p>
+                <p className="text-sm text-muted-foreground">{confidenceSummary.detail}</p>
               </div>
             )}
 
