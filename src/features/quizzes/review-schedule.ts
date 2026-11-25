@@ -6,8 +6,12 @@
  * Clearing the last rung marks it resolved, so it stops being resurfaced.
  */
 
-/** Days to wait before the next review, indexed by stage (0 = just missed). */
-export const REVIEW_INTERVALS_DAYS = [1, 3, 7] as const
+/**
+ * Days to wait before the next review, indexed by stage. Stage 0 is a fresh miss — due
+ * immediately (0 days), so it shows up in the Review page the same day it was missed, not a
+ * full day later. Each later rung (after a correct re-review) spaces out further.
+ */
+export const REVIEW_INTERVALS_DAYS = [0, 1, 3] as const
 
 export interface ReviewRecord {
   stage: number
