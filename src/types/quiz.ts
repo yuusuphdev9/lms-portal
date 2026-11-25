@@ -197,11 +197,18 @@ export type QuestionAnswer =
 
 export type QuizAttemptStatus = 'in-progress' | 'submitted' | 'graded'
 
+/** A student's self-rated certainty on one question, collected alongside their answer so it
+ *  can be compared against whether they actually got it right (see `@/features/quizzes/calibration`). */
+export type ConfidenceLevel = 'low' | 'medium' | 'high'
+
 export interface QuizAttempt {
   id: string
   quizId: string
   userId: string
   answers: QuestionAnswer[]
+  /** Maps a `Question.id` to the student's self-rated confidence on that question. Questions
+   *  the student didn't rate are simply absent — rating is optional, never required to submit. */
+  confidences?: Record<string, ConfidenceLevel>
   status: QuizAttemptStatus
   startedAt: string
   submittedAt?: string

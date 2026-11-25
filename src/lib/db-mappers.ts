@@ -10,7 +10,7 @@
  * for `.single()`) before destructuring `data`/`error` out of it, so neither one is ever `any`.
  */
 import type { PostgrestError } from '@supabase/supabase-js'
-import type { Course, CourseProgress, Lesson, LessonProgress, Module, Note, Question, Quiz, QuizAttempt, Resource } from '@/types'
+import type { ConfidenceLevel, Course, CourseProgress, Lesson, LessonProgress, Module, Note, Question, Quiz, QuizAttempt, Resource } from '@/types'
 
 export interface Result<T> { data: T | null; error: PostgrestError | null }
 
@@ -96,6 +96,7 @@ export interface QuizAttemptRow {
   quiz_id: string
   user_id: string
   answers: QuizAttempt['answers'] | null
+  confidences: Record<string, ConfidenceLevel> | null
   status: QuizAttempt['status']
   started_at: string
   submitted_at: string | null
@@ -251,6 +252,7 @@ export function mapQuizAttempt(row: QuizAttemptRow): QuizAttempt {
     quizId: row.quiz_id,
     userId: row.user_id,
     answers: (row.answers ?? []),
+    ...(row.confidences && Object.keys(row.confidences).length > 0 && { confidences: row.confidences }),
     status: row.status,
     startedAt: row.started_at,
     ...(row.submitted_at && { submittedAt: row.submitted_at }),

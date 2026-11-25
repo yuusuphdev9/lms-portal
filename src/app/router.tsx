@@ -25,6 +25,9 @@ const QuizzesPage = lazy(() =>
 const QuizAttemptPage = lazy(() =>
   import('@/features/quizzes/pages/QuizAttemptPage').then((m) => ({ default: m.QuizAttemptPage })),
 )
+const ReviewPage = lazy(() =>
+  import('@/features/quizzes/pages/ReviewPage').then((m) => ({ default: m.ReviewPage })),
+)
 const ResourcesPage = lazy(() =>
   import('@/features/resources/pages/ResourcesPage').then((m) => ({ default: m.ResourcesPage })),
 )
@@ -50,6 +53,7 @@ export const router = createBrowserRouter([
       { path: 'courses/:courseId/lessons/:lessonId', element: <LessonPage /> },
       { path: 'quizzes', element: <QuizzesPage /> },
       { path: 'quizzes/:quizId', element: <QuizAttemptPage /> },
+      { path: 'review', element: <ReviewPage /> },
       { path: 'resources', element: <ResourcesPage /> },
       { path: 'notes', element: <NotesPage /> },
       { path: '*', element: <NotFoundPage /> },

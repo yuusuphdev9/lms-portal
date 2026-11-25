@@ -1,7 +1,8 @@
 import { Check, X } from 'lucide-react'
 import { useMemo } from 'react'
+import { CONFIDENCE_LABELS, CONFIDENCE_LEVELS } from '@/features/quizzes/calibration'
 import { cn } from '@/lib/utils'
-import type { MatchingAnswer, MatchingQuestion, Question, QuestionAnswer } from '@/types'
+import type { ConfidenceLevel, MatchingAnswer, MatchingQuestion, Question, QuestionAnswer } from '@/types'
 
 interface QuestionFieldProps {
   question: Question
@@ -12,6 +13,10 @@ interface QuestionFieldProps {
   disabled?: boolean | undefined
   /** True once the student has tried to submit without answering this question. */
   showRequiredError?: boolean | undefined
+  /** The confidence selector below the input only renders when this is provided — omit both
+   *  this and `onConfidenceChange` wherever confidence rating doesn't apply (e.g. the Review page). */
+  confidence?: ConfidenceLevel | undefined
+  onConfidenceChange?: ((level: ConfidenceLevel) => void) | undefined
 }
 
 export function QuestionField({
@@ -21,6 +26,8 @@ export function QuestionField({
   isCorrect,
   disabled,
   showRequiredError,
+  confidence,
+  onConfidenceChange,
 }: QuestionFieldProps) {
   const graded = isCorrect !== undefined
 
@@ -49,6 +56,32 @@ export function QuestionField({
       </div>
 
       <QuestionInput question={question} answer={answer} onChange={onChange} disabled={disabled} />
+
+      {onConfidenceChange && (
+        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+          <span className="text-xs text-muted-foreground">How sure are you?</span>
+          <div className="flex gap-1.5">
+            {CONFIDENCE_LEVELS.map((level) => (
+              <button
+                key={level}
+                type="button"
+                disabled={disabled}
+                onClick={() => {
+                  onConfidenceChange(level)
+                }}
+                className={cn(
+                  'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+                  confidence === level
+                    ? 'border-primary bg-accent'
+                    : 'border-border hover:bg-accent/60',
+                )}
+              >
+                {CONFIDENCE_LABELS[level]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {showRequiredError && (
         <p className="text-xs font-medium text-destructive">Answer this question before submitting.</p>

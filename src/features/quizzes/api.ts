@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { progressKeys } from '@/features/progress/api'
+import { reviewKeys, syncReviewQueueAfterAttempt } from '@/features/quizzes/review-api'
+import type { QuestionResult } from '@/features/quizzes/scoring'
 import {
   assertFound,
   mapQuestion,
@@ -11,7 +13,7 @@ import {
   type Result,
 } from '@/lib/db-mappers'
 import { supabase } from '@/lib/supabase'
-import type { QuestionAnswer, Quiz, QuizAttempt } from '@/types'
+import type { ConfidenceLevel, QuestionAnswer, Quiz, QuizAttempt } from '@/types'
 
 export const quizKeys = {
   all: ['quizzes'] as const,
@@ -75,6 +77,11 @@ export function useQuizAttempts(quizId: string | undefined) {
 interface SubmitQuizAttemptInput {
   quizId: string
   answers: QuestionAnswer[]
+  /** Self-rated confidence per question id — optional per question; see `ConfidenceLevel`. */
+  confidences: Record<string, ConfidenceLevel>
+  /** Per-question correctness from `scoreQuiz`, used only to update the review queue below —
+   *  not persisted as its own column (it's derivable from `answers` + the question bank). */
+  perQuestion: QuestionResult[]
   scorePercent: number
   passed: boolean
 }
@@ -82,7 +89,14 @@ interface SubmitQuizAttemptInput {
 export function useSubmitQuizAttempt() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ quizId, answers, scorePercent, passed }: SubmitQuizAttemptInput) => {
+    mutationFn: async ({
+      quizId,
+      answers,
+      confidences,
+      perQuestion,
+      scorePercent,
+      passed,
+    }: SubmitQuizAttemptInput) => {
       const { data: userData, error: userError } = await supabase.auth.getUser()
       if (userError) throw userError
       const userId = userData.user.id
@@ -95,6 +109,7 @@ export function useSubmitQuizAttempt() {
           quiz_id: quizId,
           user_id: userId,
           answers,
+          confidences,
           status: 'graded',
           submitted_at: nowIso,
           score_percent: scorePercent,
@@ -123,12 +138,17 @@ export function useSubmitQuizAttempt() {
         })
       }
 
+      // Best-effort: advances (or resets) the spaced-repetition review queue for this quiz's
+      // questions. Never throws — see syncReviewQueueAfterAttempt's own doc comment.
+      await syncReviewQueueAfterAttempt(userId, quizId, perQuestion)
+
       return mapQuizAttempt(assertFound(attempt, 'Quiz attempt'))
     },
     onSuccess: (_attempt, variables) => {
       void queryClient.invalidateQueries({ queryKey: quizKeys.attempts(variables.quizId) })
       void queryClient.invalidateQueries({ queryKey: progressKeys.courses })
       void queryClient.invalidateQueries({ queryKey: ['progress', 'lessons'] })
+      void queryClient.invalidateQueries({ queryKey: reviewKeys.due })
     },
   })
 }

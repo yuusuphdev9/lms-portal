@@ -69,6 +69,9 @@ export function LoginPage() {
               }}
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
+            <p className="text-xs text-muted-foreground">
+              Must include an uppercase letter, a lowercase letter, and a number.
+            </p>
           </div>
 
           {signIn.isError && (
